@@ -322,9 +322,11 @@ def reset(self):
                 return
             self.cleanUp(ignoreStops=True)  # Clean up any items left by solver
             spindle, pos = self.diskSpindlePos(ID)
-            if spindle and pos and ID != self.spindles[spindle][-1]:
+            if (spindle is not None and pos is not None and
+                    ID != self.spindles[spindle][-1]):
                 print('Cannot pick up disk', ID, 'with',
                       self.spindles[spindle][-1], 'on top of it')
+                self.operationMutex.release()
                 return
             if spindle is not None:
                 self.spindles[spindle].pop()
@@ -577,10 +579,8 @@ def solve(self, nDisks={nDisks}, start={start}, goal={goal}, spare={spare}):
 
     def enableButtons(self, enable=True): # Customize enableButtons
         super().enableButtons(enable)  # Perform common operation
-        # Only enable solve button when left spindle is full with 1 or
-        self.solveButton['state'] = ( # more diskks
-            NORMAL if enable and self.nDisks() and self.leftSpindleFull()
-            else DISABLED)
+        # Keep solve clickable to provide user guidance when puzzle is not ready
+        self.solveButton['state'] = NORMAL if enable else DISABLED
         
     def validArgument(self):
         entered_text = self.getArgument()
@@ -612,7 +612,11 @@ def solve(self, nDisks={nDisks}, start={start}, goal={goal}, spare={spare}):
         self.clearArgument()    
 
     def clickSolve(self):
-        if self.leftSpindleFull():
+        if self.nDisks() <= 0:
+            self.setMessage(
+                "Click New first with a disk count from {} to {}"
+                .format(self.minDisks, self.maxDisks))
+        elif self.leftSpindleFull():
             self.solve(self.nDisks(), startAnimations=self.startMode())
             self.setMessage('{} total move{} made'.format(
                 self.moves, '' if self.moves == 1 else 's'))

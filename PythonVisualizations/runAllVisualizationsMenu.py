@@ -209,6 +209,7 @@ def showVisualizations(   # Display a set of VisualizationApps in pulldown menu
                     app.__name__, folder),
                       file=sys.stderr)
             pane = ttk.Frame(top)
+            vizApp = None
             loading['text'] = '\nLoading module {} of {} modules...'.format(
                 len(appWindows), len(classes))
             try:
@@ -223,10 +224,10 @@ def showVisualizations(   # Display a set of VisualizationApps in pulldown menu
                 name = app.__name__ + ' *'
                 msg = 'Error instantiating {}:\n{}'.format(app.__name__, e)
                 label = Label(pane, text=msg, fg='red')
-                label.grid()
+                label.pack()
                 print(msg, file=sys.stderr)
 
-            if start and start.lower() in (
+            if vizApp and start and start.lower() in (
                     getattr(vizApp, 'title', app.__name__).lower(),
                     app.__name__.lower()) and pane == appWindows[-1]:
                startAppWindow = pane

@@ -186,6 +186,126 @@ def bubbleSort(self):
         self.highlightCode([], callEnviron)
         self.cleanUp(callEnviron)
 
+    cocktailSortCode = """
+def cocktailSort(self):
+   left = 0
+   right = self.__nItems - 1
+   swapped = True
+   while swapped and left < right:
+      swapped = False
+      for inner in range(left, right):
+         if self.__a[inner] > self.__a[inner+1]:
+            self.swap(inner, inner+1)
+            swapped = True
+      right -= 1
+      if not swapped:
+         break
+      swapped = False
+      for inner in range(right, left, -1):
+         if self.__a[inner-1] > self.__a[inner]:
+            self.swap(inner-1, inner)
+            swapped = True
+      left += 1
+"""
+
+    def cocktailSort(self, code=cocktailSortCode, start=True):
+        wait = 0.1
+        callEnviron = self.createCallEnvironment(
+            code=code, startAnimations=start)
+        n = len(self.list)
+        if n < 2:
+            self.highlightCode([], callEnviron)
+            self.cleanUp(callEnviron)
+            return
+
+        self.highlightCode('left = 0', callEnviron)
+        left = 0
+        leftIndex = self.createIndex(left, "left", level=3)
+        callEnviron |= set(leftIndex)
+
+        self.highlightCode('right = self.__nItems - 1', callEnviron)
+        right = n - 1
+        rightIndex = self.createIndex(right, "right", level=2)
+        callEnviron |= set(rightIndex)
+
+        self.highlightCode('swapped = True', callEnviron)
+        swapped = True
+        innerIndex = None
+
+        self.highlightCode('swapped and left < right', callEnviron)
+        while swapped and left < right:
+            self.highlightCode('swapped = False', callEnviron)
+            swapped = False
+
+            self.highlightCode('inner in range(left, right)', callEnviron)
+            for inner in range(left, right):
+                if innerIndex is None:
+                    innerIndex = self.createIndex(inner, "inner", level=1)
+                    callEnviron |= set(innerIndex)
+                else:
+                    centerX0 = self.cellCenter(inner)[0]
+                    deltaX = centerX0 - self.canvas.coords(innerIndex[0])[0]
+                    if deltaX != 0:
+                        self.moveItemsBy(
+                            innerIndex, (deltaX, 0), sleepTime=wait/5)
+
+                self.highlightCode(
+                    'self.__a[inner] > self.__a[inner+1]', callEnviron,
+                    wait=wait)
+                if self.list[inner].val > self.list[inner + 1].val:
+                    self.highlightCode('self.swap(inner, inner+1)', callEnviron)
+                    self.swap(inner, inner + 1)
+                    self.highlightCode('swapped = True', callEnviron)
+                    swapped = True
+
+                self.highlightCode('inner in range(left, right)', callEnviron)
+                centerX0 = self.cellCenter(inner + 1)[0]
+                deltaX = centerX0 - self.canvas.coords(innerIndex[0])[0]
+                if deltaX != 0:
+                    self.moveItemsBy(innerIndex, (deltaX, 0), sleepTime=wait/5)
+
+            self.highlightCode('right -= 1', callEnviron)
+            right -= 1
+            self.moveItemsBy(rightIndex, (-self.CELL_WIDTH, 0), sleepTime=wait/5)
+
+            self.highlightCode('if not swapped', callEnviron, wait=wait)
+            if not swapped:
+                self.highlightCode('break', callEnviron)
+                break
+
+            self.highlightCode('swapped = False', callEnviron)
+            swapped = False
+
+            self.highlightCode('inner in range(right, left, -1)', callEnviron)
+            for inner in range(right, left, -1):
+                centerX0 = self.cellCenter(inner)[0]
+                deltaX = centerX0 - self.canvas.coords(innerIndex[0])[0]
+                if deltaX != 0:
+                    self.moveItemsBy(innerIndex, (deltaX, 0), sleepTime=wait/5)
+
+                self.highlightCode(
+                    'self.__a[inner-1] > self.__a[inner]', callEnviron,
+                    wait=wait)
+                if self.list[inner - 1].val > self.list[inner].val:
+                    self.highlightCode('self.swap(inner-1, inner)', callEnviron)
+                    self.swap(inner - 1, inner)
+                    self.highlightCode('swapped = True', callEnviron)
+                    swapped = True
+
+                self.highlightCode('inner in range(right, left, -1)', callEnviron)
+                centerX0 = self.cellCenter(inner - 1)[0]
+                deltaX = centerX0 - self.canvas.coords(innerIndex[0])[0]
+                if deltaX != 0:
+                    self.moveItemsBy(innerIndex, (deltaX, 0), sleepTime=wait/5)
+
+            self.highlightCode('left += 1', callEnviron)
+            left += 1
+            self.moveItemsBy(leftIndex, (self.CELL_WIDTH, 0), sleepTime=wait/5)
+            self.highlightCode('swapped and left < right', callEnviron)
+
+        self.highlightCode([], callEnviron)
+        self.cleanUp(callEnviron)
+
     selectionSortCode = """
 def selectionSort(self):
    for outer in range(self.__nItems-1):
@@ -312,6 +432,10 @@ def selectionSort(self):
             "Bubble Sort", 
             lambda: self.bubbleSort(start=self.startMode()), maxRows=maxRows,
             helpText='Sort array using bubble sort')
+        cocktailSortButton = self.addOperation(
+            "Cocktail Sort",
+            lambda: self.cocktailSort(start=self.startMode()), maxRows=maxRows,
+            helpText='Sort array using bidirectional bubble passes')
         selectionSortButton = self.addOperation(
             "Selection Sort",
             lambda: self.selectionSort(start=self.startMode()), maxRows=maxRows,
