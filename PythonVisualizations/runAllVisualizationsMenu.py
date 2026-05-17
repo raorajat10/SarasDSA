@@ -43,6 +43,7 @@ PREFERRED_ARRANGEMENT = [
     ['Group 14', ['WeightedGraph']],
     ['Group 15', ['BloomFilter', 'SkipList']],
     ['Group 16', ['AStarGrid']],
+    ['Group 17', ['ApproxVertexCover']],
     ]
 
 INTRO_FONT = ('Helvetica', -16)
